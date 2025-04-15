@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <unordered_map>
@@ -5,6 +6,15 @@
 #include <string>
 #include <iterator>
 #include <optional>
+#include <fstream>
+#include <iostream>
+#include <cstring>
+
+namespace Persistence
+{
+    constexpr std::string_view cacheFileHeader { "LRU-DB" };
+    constexpr size_t formatVersion { 1 };
+}
 
 class LRUCache
 {
@@ -20,12 +30,15 @@ class LRUCache
     void use(ListIt iterator);
 
 public:
-    explicit LRUCache(std::size_t size) 
+    explicit LRUCache(std::size_t size=0) 
         : m_capacity { size }
     {
         m_map.reserve(size);
     }
 
-    std::optional<std::string>     get(const std::string& key);
-    void                           put(const std::string& key, const std::string& value);
+    std::optional<std::string>  get(const std::string& key);
+    void                        put(const std::string& key, const std::string& value);
+
+    void                        saveToDisk(const std::string& fileName);
+    void                        loadFromDisk(const std::string& fileName);
 };

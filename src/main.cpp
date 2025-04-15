@@ -10,18 +10,52 @@ void printGet(LRUCache& cache, const std::string& key)
 
 int main()
 {
-    LRUCache cache(2);
+    { // test saving to disk
+        LRUCache cache(4);
 
-    cache.put("bob", "20");
-    cache.put("kareem", "18");
+        for(int i = 0; i < 4; ++i)
+        {
+            cache.put(std::to_string(i), std::to_string(i+1));
+            printGet(cache, std::to_string(i));
+        }
 
-    cache.get("bob"); 
+        std::cout << "Saving to disk..." << "\n";
+        std::cout << "-----------------" << "\n";
 
-    cache.put("elvis", "33"); // kareem should be evicted
+        cache.saveToDisk("cache.db");
+    }
 
-    printGet(cache, "bob");
-    printGet(cache, "kareem");
-    printGet(cache, "elvis");
 
+    { // test loading from disk
+
+        LRUCache cache{}; 
+
+        std::cout << "Loading from disk..." << "\n";
+        std::cout << "-----------------" << "\n";
+
+        cache.loadFromDisk("cache.db");
+
+        for (int i = 0; i < 4; i++)
+        {
+            printGet(cache, std::to_string(i));
+        }
+
+        std::cout << "-----------------" << "\n";
+        std::cout << "Testing LRU usage list correctness" << "\n";
+        std::cout << "-----------------" << "\n";
+        
+        cache.put("kareem", "18");
+        cache.put("bob", "33");
+    
+        for (int i = 0; i < 4; i++)
+        {
+            printGet(cache, std::to_string(i));
+        }
+
+        printGet(cache, "kareem");
+        printGet(cache, "bob");
+
+    }
+    
     return 0;
 }

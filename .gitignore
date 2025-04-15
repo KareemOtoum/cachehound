@@ -1,6 +1,7 @@
 .vscode/
 main
 build/
+cache.db
 
 # Prerequisites
 *.d
