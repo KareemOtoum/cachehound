@@ -1,29 +1,29 @@
+# Compiler & flags
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -O2
-TARGET = build/main
+CXXFLAGS = -std=c++20 -Wall -Wextra -O2 -Iinclude
 
-SRCS = main.cpp LRUCache.cpp
-OBJS = $(SRCS:%.cpp=build/%.o)
+# Directories
+SRC_DIR = src
+OBJ_DIR = build
+TARGET = $(OBJ_DIR)/main
 
-# Default target
-all: $(TARGET)
+# Source files and object files
+SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
-# Link the executable
+# Build target
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-# Compile .cpp to build/*.o
-build/%.o: %.cpp | build
+# Rule for building object files into build/
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Create build directory if it doesn't exist
-build:
-	mkdir -p build
 
 # Run the program
 run: $(TARGET)
 	./$(TARGET)
 
-# Clean up all build files
+# Clean build files
 clean:
-	rm -rf build
+	rm -rf $(OBJ_DIR)
