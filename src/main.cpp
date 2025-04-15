@@ -5,11 +5,22 @@ void printGet(LRUCache& cache, const std::string& key)
 {
     auto value { cache.get(key) };
 
-    std::cout << key << ": " << (value ? value.value() : "NOT FOUND") << "\n";
+    std::cout << "| "<< key << ": " << (value ? value.value() : "NOT FOUND") << "\n";
 }
 
 int main()
 {
+    std::string logo { R"(
+                _          _                           _ 
+  ___ __ _  ___| |__   ___| |__   ___  _   _ _ __   __| |
+ / __/ _` |/ __| '_ \ / _ \ '_ \ / _ \| | | | '_ \ / _` |
+| (_| (_| | (__| | | |  __/ | | | (_) | |_| | | | | (_| |
+ \___\__,_|\___|_| |_|\___|_| |_|\___/ \__,_|_| |_|\__,_|
+                                                         
+    )"};
+
+    std::cout << logo << "\n----------------------------------------------------------\n\n\n";
+
     { // test saving to disk
         LRUCache cache(4);
 
@@ -22,7 +33,7 @@ int main()
         std::cout << "Saving to disk..." << "\n";
         std::cout << "-----------------" << "\n";
 
-        cache.saveToDisk("cache.db");
+        cache.saveToDisk(Persistence::cacheFile);
     }
 
 
@@ -33,7 +44,7 @@ int main()
         std::cout << "Loading from disk..." << "\n";
         std::cout << "-----------------" << "\n";
 
-        cache.loadFromDisk("cache.db");
+        cache.loadFromDisk(Persistence::cacheFile);
 
         for (int i = 0; i < 4; i++)
         {

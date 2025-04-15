@@ -12,7 +12,8 @@
 
 namespace Persistence
 {
-    constexpr std::string_view cacheFileHeader { "LRU-DB" };
+    constexpr std::string_view cacheFileHeader { "CACHEHOUND" };
+    constexpr std::string cacheFile { "cache.db" };
     constexpr size_t formatVersion { 1 };
 }
 
