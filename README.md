@@ -3,7 +3,7 @@
 ---
 
 ### Building and Running  
-run the following commands
+run the following commands to clone and run in bash with g++ and make installed
 ```bash
 git clone https://github.com/KareemOtoum/key-value-database.git
 cd key-value-database

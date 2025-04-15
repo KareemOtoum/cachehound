@@ -20,7 +20,7 @@ class LRUCache
     void use(ListIt iterator);
 
 public:
-    explicit LRUCache(std::size_t size) noexcept 
+    explicit LRUCache(std::size_t size) 
         : m_capacity { size }
     {
         m_map.reserve(size);
