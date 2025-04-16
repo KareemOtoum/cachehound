@@ -13,33 +13,42 @@
 namespace Persistence
 {
     constexpr std::string_view cacheFileHeader { "CACHEHOUND" };
-    constexpr std::string cacheFile { "cache.db" };
+    constexpr std::string defaultCacheFile { "cache.db" };
     constexpr size_t formatVersion { 1 };
 }
 
 class LRUCache
 {
-    using ListIt = std::list<std::string>::iterator;
-    
-    // least recently used entry is at the front of the list
-    std::list<std::string> m_usage{};
-    std::unordered_map<std::string, std::pair<std::string, ListIt>> m_map{};
-    
-    std::size_t m_capacity{};
-
-    void evictLRU();
-    void use(ListIt iterator);
-
 public:
-    explicit LRUCache(std::size_t size=0) 
-        : m_capacity { size }
+    using ListIt = std::list<std::string>::iterator;
+    using HashmapT = std::unordered_map<std::string, std::pair<std::string, ListIt>>;
+
+    explicit LRUCache(std::size_t capacity, 
+        std::string_view fileName=Persistence::defaultCacheFile) 
+        : m_capacity { capacity }
+        , m_cacheFile { fileName }
     {
-        m_map.reserve(size);
+        if(capacity < 1) m_capacity = 1; // cache cant have 0 capacity
+
+        m_map.reserve(capacity);
     }
 
     std::optional<std::string>  get(const std::string& key);
     void                        put(const std::string& key, const std::string& value);
+     
+    const HashmapT&             getAll() const;
 
-    void                        saveToDisk(const std::string& fileName);
-    void                        loadFromDisk(const std::string& fileName);
+    void                        saveToDisk();
+    void                        loadFromDisk();
+
+private:
+    // least recently used entry is at the front of the list
+    std::list<std::string> m_usage{};
+    HashmapT m_map{};
+    
+    std::size_t m_capacity{};
+    std::string m_cacheFile{};
+
+    void evictLRU();
+    void use(ListIt iterator);
 };

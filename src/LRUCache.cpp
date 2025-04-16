@@ -19,8 +19,15 @@ std::optional<std::string> LRUCache::get(const std::string& key)
     return pair.first;
 }
 
+const LRUCache::HashmapT& LRUCache::getAll() const
+{
+    return m_map;
+}
+
 void LRUCache::evictLRU()
 {
+    if(m_map.size() == 0) return; // dont evict if cache is empty
+
     const std::string& key { m_usage.front() };
     m_map.erase(key);
     m_usage.pop_front();
@@ -59,9 +66,9 @@ void writeString(std::ofstream& file, const std::string_view str)
     file.write(&str[0], str.size());
 }
 
-void LRUCache::saveToDisk(const std::string& fileName)
+void LRUCache::saveToDisk()
 {
-    std::ofstream file(fileName, std::ios::binary);
+    std::ofstream file(m_cacheFile, std::ios::binary);
 
     writeString(file, Persistence::cacheFileHeader);    // "LRU-DB"
     writeSizeT(file, Persistence::formatVersion);       // format version
@@ -101,9 +108,9 @@ std::string readString(std::ifstream& file)
     return str;
 }
 
-void LRUCache::loadFromDisk(const std::string& fileName)
+void LRUCache::loadFromDisk()
 {
-    std::ifstream file(fileName, std::ios::binary);
+    std::ifstream file(m_cacheFile, std::ios::binary);
 
     if(!file)
     {
