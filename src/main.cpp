@@ -1,12 +1,12 @@
 #include "LRUCache.h"
-#include "cli.h"
+#include "cli_debug.h"
 #include <iostream>
 
 int main()
 {
     LRUCache cache{ 4 };
 
-    startCLI(cache);
+    startDebugCLI(cache);
     
     return 0;
 }
