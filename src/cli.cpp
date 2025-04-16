@@ -211,6 +211,8 @@ void printCommands()
     std::cout << "\t| put <key> <value>     - puts a key-value pair in the cache\n";
     std::cout << "\t| get <key>             - gets a value from the cache\n";
     std::cout << "\t| getall                - gets all values from the cache\n";
+    std::cout << "\t| save                  - saves cache to file\n";
+    std::cout << "\t| load                  - loads cache from file\n";
     std::cout << "\t| exit\n";
     std::cout << "\n";
 }
