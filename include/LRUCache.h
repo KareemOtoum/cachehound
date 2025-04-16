@@ -23,10 +23,10 @@ public:
     using ListIt = std::list<std::string>::iterator;
     using HashmapT = std::unordered_map<std::string, std::pair<std::string, ListIt>>;
 
-    explicit LRUCache(std::size_t capacity, 
-        std::string_view fileName=Persistence::defaultCacheFile) 
+    explicit LRUCache(std::size_t capacity,
+        std::string_view cacheFile=Persistence::defaultCacheFile) 
         : m_capacity { capacity }
-        , m_cacheFile { fileName }
+        , m_cacheFile { cacheFile }
     {
         if(capacity < 1) m_capacity = 1; // cache cant have 0 capacity
 
@@ -40,6 +40,7 @@ public:
 
     void                        saveToDisk();
     void                        loadFromDisk();
+    void                        setCacheFile(std::string_view fileName);
 
 private:
     // least recently used entry is at the front of the list

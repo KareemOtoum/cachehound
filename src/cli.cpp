@@ -57,6 +57,34 @@ void startCLI(LRUCache& cache)
         return true;
     };
 
+    commandMap["save"] = [](COMMAND_ARGS)
+    {
+        if(args.size() != 1)
+        {
+            std::cout << "Usage: save" << "\n";
+            return true;
+        }
+        
+        std::cout << "| Saving to disk..." << "\n";
+        cache.saveToDisk();
+        std::cout << "| Done" << "\n";
+        return true;
+    };
+
+    commandMap["load"] = [](COMMAND_ARGS)
+    {
+        if(args.size() != 1)
+        {
+            std::cout << "Usage: load" << "\n";
+            return true;
+        }
+        
+        std::cout << "| Loading from disk..." << "\n";
+        cache.loadFromDisk();
+        std::cout << "| Done" << "\n";
+        return true;
+    };
+
     commandMap["exit"] = [](COMMAND_ARGS)
     {
         (void)cache;

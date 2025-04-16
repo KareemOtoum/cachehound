@@ -53,6 +53,11 @@ void LRUCache::put(const std::string& key, const std::string& value)
     m_map[key] = std::pair{value, --m_usage.end()};
 }
 
+void LRUCache::setCacheFile(std::string_view fileName)
+{
+    m_cacheFile = fileName;
+}
+
 // writes a size_t to a file in binary format
 void writeSizeT(std::ofstream& file, size_t val)
 {
