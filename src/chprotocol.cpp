@@ -1,21 +1,18 @@
 #include "chprotocol.h"
 
 int serializeString(std::string_view str, Protocol::Buffer& buffer, int index);
+int deserializeString(std::optional<std::string>& str, const Protocol::Buffer& buffer, int start, int size);
 
 // returns -1 on failure and 0 on sucess
 // does not empty buffer on failure
 int serialize(const Protocol::Packet& packet, Protocol::Buffer& buffer)
 {
-    std::cout << "checking action\n";
     // action is invalid
     if(packet.m_action < Protocol::PUT || packet.m_action > Protocol::LOAD)
     {
         return -1;
     }
-    std::cout << "checking correct strings for put and get\n";
-    
 
-    std::cout << "checking no strings for other commands\n";
     // put doesnt have key and value strings
     if(packet.m_action == Protocol::PUT && (!packet.m_key || !packet.m_value))
     {
@@ -36,11 +33,8 @@ int serialize(const Protocol::Packet& packet, Protocol::Buffer& buffer)
     // set action in the first byte
     buffer[0] = static_cast<std::byte>(packet.m_action);
 
-
     if(packet.m_key)
     {
-        std::cout << "checking strings and lengths\n";
-
         // write key string at index 1 of buffer
         if(serializeString(packet.m_key.value(), buffer, 1) == -1) return -1;
 
@@ -59,11 +53,26 @@ int serialize(const Protocol::Packet& packet, Protocol::Buffer& buffer)
 // returns -1 on failure and 0 on sucess
 int deserialize(const Protocol::Buffer& buffer, Protocol::Packet& packet)
 {
-    (void)buffer;
-    (void)packet;
+    if(buffer.size() != Protocol::k_packetSize)
+    {
+        return -1;
+    }
+
+    packet.m_action = static_cast<Protocol::Action>(buffer[0]);
+
+    if(packet.m_action < Protocol::PUT || packet.m_action > Protocol::LOAD)
+    {
+        return -1;
+    }
+
+    Protocol::StringSizeT keyStrSize { static_cast<Protocol::StringSizeT>(buffer[1]) };
+    deserializeString(packet.m_key, buffer, 2, keyStrSize);
+
+    Protocol::StringSizeT valueStrSize { static_cast<Protocol::StringSizeT>(buffer[2 + keyStrSize]) };
+    deserializeString(packet.m_value, buffer, 3 + keyStrSize, valueStrSize);
+
     return 0;
 }
-
 
 int serializeString(std::string_view str, Protocol::Buffer& buffer, int index)
 {
@@ -78,5 +87,11 @@ int serializeString(std::string_view str, Protocol::Buffer& buffer, int index)
     buffer[index] = static_cast<std::byte>(size);
     std::memcpy(&buffer[index + 1], str.data(), size);
 
+    return 0;
+}
+
+int deserializeString(std::optional<std::string>& str, const Protocol::Buffer& buffer, int start, int size)
+{
+    str = std::string(reinterpret_cast<const char*>(&buffer[start]), size);
     return 0;
 }

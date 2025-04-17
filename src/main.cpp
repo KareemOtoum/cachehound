@@ -13,10 +13,27 @@ std::ostream& operator<<(std::ostream& cout, const Protocol::Buffer& buffer)
     return cout;
 }
 
+std::ostream& operator<<(std::ostream& cout, const Protocol::Packet& packet)
+{
+    cout << static_cast<int>(packet.m_action) << " ";
+    if(packet.m_key) cout << packet.m_key.value();
+    if(packet.m_value) cout << packet.m_value.value();
+    return cout;
+}
+
+
 int main()
 {
-    LRUCache cache{ 4 };
+    Protocol::Packet packet {Protocol::LOAD};
+    Protocol::Buffer buffer{};
 
-    startServerCLI(); 
+    serialize(packet, buffer);
+    std::cout << buffer << "\n";
+
+    Protocol::Packet p2 {};
+
+    deserialize(buffer, p2);
+
+    std::cout << p2 << "\n";
     return 0;
 }
