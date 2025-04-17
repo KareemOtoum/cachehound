@@ -12,10 +12,14 @@ void startServerCLI()
     // Worker is not copyable or moveable because of std::mutex 
     // probably should be changed?
     std::vector<std::unique_ptr<Worker>> workers;
-    workers.reserve(ServerConstants::k_workerCount);
+
+    // worker count is the number of logical cores or 4 if hardware_concurrency() fails 
+    const int workerCount { ServerConstants::k_workerCount > 0 ? ServerConstants::k_workerCount
+         : ServerConstants::k_defaultWorkerCount };
+    workers.reserve(workerCount);
     
     std::cout << "Setting up workers\n";
-    for(int i{}; i < ServerConstants::k_workerCount; ++i)
+    for(int i{}; i < workerCount; ++i)
     {
         workers.push_back(std::make_unique<Worker>());
 

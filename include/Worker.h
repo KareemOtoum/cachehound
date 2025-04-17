@@ -17,7 +17,7 @@
 
 namespace ServerConstants
 {
-    constexpr int k_maxEvents {64 };
+    constexpr int k_maxEvents { 64 };
     using DispatchEventT = uint64_t;
 }
 

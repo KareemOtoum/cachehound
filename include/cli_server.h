@@ -25,7 +25,8 @@ namespace ServerConstants
 {
     constexpr std::string_view port { "8080" };
 
-    constexpr int k_workerCount { 8 };
+    inline const int k_workerCount { std::thread::hardware_concurrency() };
+    constexpr int k_defaultWorkerCount { 4 };
 }
 
 void startServerCLI();
