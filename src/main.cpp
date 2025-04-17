@@ -7,7 +7,7 @@ int main()
 {
     LRUCache cache{ 4 };
 
-    startDebugCLI(cache);
+    startServerCLI();
 
     return 0;
 }
