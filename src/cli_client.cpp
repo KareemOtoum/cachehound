@@ -38,7 +38,7 @@ void startClientCLI(std::string_view ip, std::string_view port)
     printLogo();
     printClientCommands();
 
-    std::cout << "| Connected to database\n";
+    std::cout << " | Connected to database\n";
 
     // commands hashmap
     // commands return true to continue and false to exit cli
@@ -107,6 +107,59 @@ void startClientCLI(std::string_view ip, std::string_view port)
         std::cout << " | " << packet.m_key.value() << "\n";
 
         return true;
+    };
+
+    commandMap["save"] = [&clientSocket](ArgsT args) -> bool
+    {
+        if(args.size() != 1)
+        {
+            std::cout << "Usage: save" << "\n";
+            return true;
+        }
+
+        packet = { Protocol::SAVE };
+
+        if(serialize(packet, buffer) == -1)
+        {
+            printError("Failed to serialize packet");
+            return true;
+        }
+
+        send(clientSocket, buffer.data(), sizeof(buffer), 0);
+
+        return true;
+    };
+
+    commandMap["load"] = [&clientSocket](ArgsT args) -> bool
+    {
+        if(args.size() != 1)
+        {
+            std::cout << "Usage: load" << "\n";
+            return true;
+        }
+
+        packet = { Protocol::LOAD };
+
+        if(serialize(packet, buffer) == -1)
+        {
+            printError("Failed to serialize packet");
+            return true;
+        }
+
+        send(clientSocket, buffer.data(), sizeof(buffer), 0);
+
+        return true;
+    };
+
+    commandMap["exit"] = [&clientSocket](ArgsT args) -> bool
+    {
+        if(args.size() != 1)
+        {
+            std::cout << "Usage: exit" << "\n";
+            return true;
+        }
+
+        return false;
     };
 
     std::string input{};
