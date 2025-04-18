@@ -8,20 +8,53 @@
 
 int main(int argc, char* argv[])
 {
-    if(argc != 2)
+    if(argc < 2)
     {
-        std::cout << "cacheound client/server\n";
+        std::cout << "Usage: make <client/server> <arguements>\n";
         return -1;
     }
 
     if(std::strncmp(argv[1], "server", 7) == 0)
     {
-        LRUCache cache(4);
+        size_t capacity { CacheConstants::defaultCapacity };
+
+        if(argc == 3) // if capacity is specified
+        {
+            try
+            {
+                size_t parsed { std::stoi(argv[2]) };
+                if(parsed < 1 || parsed > CacheConstants::maxCapacity)
+                {
+                    std::cerr << "Invalid capacity using default: " << 
+                        CacheConstants::defaultCapacity << "\n";
+                }
+                else
+                {
+                    capacity = parsed;
+                }
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << "invalid parameters: " << e.what() << '\n';
+            }
+        } 
+
+        std::shared_ptr<LRUCache> cache { std::make_shared<LRUCache>(capacity) };
+
         startServerCLI(cache);
     } 
     else if(std::strncmp(argv[1], "client", 7) == 0)
     {
-        startClientCLI("127.0.0.1", "8080");
+        std::string_view ip { "127.0.0.1" };
+        std::string_view port { "5050" };
+
+        if(argc == 4)
+        {
+            ip = argv[2];
+            port = argv[3];
+        }
+
+        startClientCLI(ip, port);
     }
     
     return 0;

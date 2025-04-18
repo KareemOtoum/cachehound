@@ -1,6 +1,6 @@
 #include "Worker.h"
 
-void Worker::run(LRUCache& cache)
+void Worker::run(std::shared_ptr<LRUCache> cache)
 {
     std::array<epoll_event, ServerConstants::k_maxEvents> events{};
 
@@ -10,13 +10,12 @@ void Worker::run(LRUCache& cache)
     ev.events = EPOLLIN;
     epoll_ctl(m_epollFD, EPOLL_CTL_ADD, m_eventFD, &ev);
 
-    while(true) // change to a running flag to shutdown server and cleanup threads
+    while(ServerConstants::g_running.load()) 
     {
         // call epoll wait handle if new clients need to be added 
         // or if a client sends a packet
 
-        // blocks indefinitely
-        int eventsReady { epoll_wait(m_epollFD, events.data(), ServerConstants::k_maxEvents, -1) };
+        int eventsReady { epoll_wait(m_epollFD, events.data(), ServerConstants::k_maxEvents, 100) };
 
         for(int i{}; i < eventsReady; ++i)
         {
@@ -36,6 +35,8 @@ void Worker::run(LRUCache& cache)
                     int clientFD { m_socketQueue.front() };
                     m_socketQueue.pop();
 
+                    m_clientSockets.insert(clientFD);
+
                     epoll_event clientEvent{};
                     clientEvent.events = EPOLLIN;
                     clientEvent.data.fd = clientFD;
@@ -54,45 +55,45 @@ void Worker::run(LRUCache& cache)
 
                 if (bytes == -1) 
                 {
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) // All data has been read
-                    {
-                        std::cout << "All data has been read\n";
-                    } 
-                    else // Handle error
-                    {
-                        std::cerr << "Error receiving packet\n";
-                    }
+                    m_clientSockets.erase(fd);
+                    epoll_ctl(m_epollFD, EPOLL_CTL_DEL, fd, &events[i]);
+                    close(fd);
                     continue;
                 } 
                 else if (bytes == 0) // Client closed connection
                 {
                     std::cout << "client fd " << fd << " disconnected\n";
+                    m_clientSockets.erase(fd);
                     epoll_ctl(m_epollFD, EPOLL_CTL_DEL, fd, &events[i]);
                     close(fd);
                     continue;
                 }
                 
-                std::cout << "Processing message from client " << fd << "\n";
                 // Process data...
                 Protocol::Packet packet{};
                 if(deserialize(buffer, packet) == -1)
                 {
-                    std::cout << "Couldn't deserialize buffer from client\n";
+                    std::cerr << "Couldn't deserialize buffer from client\n";
                     continue;
                 }
 
                 std::optional<std::string> val {};
+                std::lock_guard<std::mutex> lock(cache->m_cacheMutex);
 
                 switch (packet.m_action)
                 {
                         
                 case Protocol::PUT:
-                    cache.put(packet.m_key.value(), packet.m_value.value());  
+                    if (!packet.m_key || !packet.m_value) {
+                        std::cerr << "PUT packet missing key or value. Crashing avoided.\n";
+                        continue;
+                    }
+                    cache->put(packet.m_key.value(), packet.m_value.value());
                     std::cout << "put " << packet.m_key.value() << " into database\n";
                     break;
                     
                 case Protocol::GET:
-                    val = { cache.get(packet.m_key.value()) };
+                    val = { cache->get(packet.m_key.value()) };
                     packet.m_key = val ? val.value() : "NOT FOUND";
                     bufferFactory(buffer);
                     serialize(packet, buffer);
@@ -103,18 +104,31 @@ void Worker::run(LRUCache& cache)
 
                 case Protocol::SAVE:
                     std::cout << "Saving to disk...\n";
-                    cache.saveToDisk();
+                    cache->saveToDisk();
                     break;
 
                 case Protocol::LOAD:
                     std::cout << "Loading from disk...\n";
-                    cache.loadFromDisk();
+                    cache->loadFromDisk();
                     break;
-                    
+
                 default:
                     break;
                 }
             }
         }
     }
+    
+    cleanup();
+}
+
+void Worker::cleanup()
+{
+    for(int fd : m_clientSockets)
+    {
+        close(fd);
+    }
+    
+    close(m_eventFD);
+    close(m_epollFD);
 }

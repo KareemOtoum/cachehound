@@ -1,8 +1,11 @@
 #pragma once
 
 #include "chprotocol.h"
+#include "cli_server.h"
 #include "LRUCache.h"
 
+#include <memory>
+#include <unordered_set>
 #include <iostream>
 #include <vector>
 #include <array>
@@ -32,6 +35,8 @@ struct Worker
     std::thread m_thread{};
     std::mutex m_queueMutex{};
     std::queue<int> m_socketQueue{}; // client connections queue
+    std::unordered_set<int> m_clientSockets;
 
-    void run(LRUCache& cache);
+    void run(std::shared_ptr<LRUCache> cache);
+    void cleanup();
 };

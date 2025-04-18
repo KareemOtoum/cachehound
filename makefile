@@ -22,10 +22,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 # Run the program
 server: $(TARGET)
-	./$(TARGET) server
+	./$(TARGET) server $(capacity)
 
 client: $(TARGET)
-	./$(TARGET) client
+	./$(TARGET) client $(ip) $(port)
 
 # Clean build files
 clean:

@@ -5,12 +5,21 @@ void logNewClient(const sockaddr_storage& clientAddr);
 int setupServerSocket();
 void makeNonBlocking(int fd);
 void dispatchClient(int clientFD, std::vector<std::unique_ptr<Worker>>& workers);
+void handleExit(int signal);
 
-void startServerCLI(LRUCache& cache) 
+namespace ServerConstants
 {
+    std::atomic<bool> g_running { true };
+}
+void startServerCLI(std::shared_ptr<LRUCache> cache) 
+{
+    // setup cleanup handler
+    std::signal(SIGINT, handleExit);
+    std::signal(SIGTERM, handleExit);
+
+    std::shared_ptr<LRUCache> sharedCache = std::move(cache);
+    
     // setup worker threads
-    // Worker is not copyable or moveable because of std::mutex 
-    // probably should be changed?
     std::vector<std::unique_ptr<Worker>> workers;
 
     // worker count is the number of logical cores or 4 if hardware_concurrency() fails 
@@ -21,20 +30,20 @@ void startServerCLI(LRUCache& cache)
     std::cout << "Setting up workers\n";
     for(int i{}; i < workerCount; ++i)
     {
-        workers.push_back(std::make_unique<Worker>());
-
-        // run worker thread on its own run function by passing 
-        // its object address to the member func as a this ptr
-        Worker& worker { *workers[i] };
-        worker.m_thread = std::thread(&Worker::run, &worker, std::ref(cache));
-        worker.m_epollFD = epoll_create1(0);
-        worker.m_eventFD = eventfd(0, EFD_NONBLOCK);
+        auto worker = std::make_unique<Worker>();
+        worker->m_epollFD = epoll_create1(0);
+        worker->m_eventFD = eventfd(0, EFD_NONBLOCK);
+    
+        // Start thread *after* FD init
+        worker->m_thread = std::thread(&Worker::run, worker.get(), sharedCache);
+    
+        workers.push_back(std::move(worker));
     }
 
     std::cout << "Setting up server\n";
 
     // setup server socket on main thread
-    
+
     int serverSock { setupServerSocket() };
 
     if(serverSock == -1) 
@@ -50,7 +59,7 @@ void startServerCLI(LRUCache& cache)
     struct sockaddr_storage client_addr{};
     socklen_t sin_size{};
 
-    while(true)
+    while(ServerConstants::g_running.load())
     {
         // non blocking returns immediately
         // change to use epoll to lower cpu usage
@@ -73,6 +82,13 @@ void startServerCLI(LRUCache& cache)
     }
 
     close(serverSock);
+    for(auto& worker : workers)
+    {
+        if((*worker).m_thread.joinable())
+        {
+            (*worker).m_thread.join();
+        }
+    }
 }
 
 void dispatchClient(int clientFD, std::vector<std::unique_ptr<Worker>>& workers)
@@ -132,7 +148,7 @@ int setupServerSocket()
     hints.ai_family = AF_UNSPEC; // dont care about ipv4 or ipv6
     hints.ai_socktype = SOCK_STREAM; // TCP socket
 
-    if((rv = getaddrinfo("127.0.0.1", ServerConstants::port.data(), &hints, &serverinfo) != 0))
+    if((rv = getaddrinfo("127.0.0.1", ServerConstants::port.data(), &hints, &serverinfo)) != 0)
     {
         printError("Server error: getaddrinfo");
         return -1;
@@ -156,11 +172,21 @@ int setupServerSocket()
 
     freeaddrinfo(serverinfo);
 
-    if(listen(serverSock, 1) == -1)
+    if(listen(serverSock, SOMAXCONN) == -1)
     {
         printError("Server error: failed to listen");
+        close(serverSock);
         return -1;
     }
 
     return serverSock;
+}
+
+void handleExit(int signal)
+{
+    if (signal == SIGINT || signal == SIGTERM) 
+    {
+        std::cout << "\nShutting down server...";
+        ServerConstants::g_running = false;
+    }
 }

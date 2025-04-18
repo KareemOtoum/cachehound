@@ -19,12 +19,18 @@ namespace Persistence
     constexpr size_t formatVersion { 1 };
 }
 
+namespace CacheConstants
+{
+    constexpr int defaultCapacity { 10000 };
+    constexpr int maxCapacity { 100000 };
+}
+
 class LRUCache
 {
 public:
     using ListIt = std::list<std::string>::iterator;
     using HashmapT = std::unordered_map<std::string, std::pair<std::string, ListIt>>;
-    
+
     std::mutex m_cacheMutex{};
 
     explicit LRUCache(std::size_t capacity,
