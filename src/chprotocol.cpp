@@ -2,7 +2,7 @@
 
 int serializeString(std::string_view str, Protocol::Buffer& buffer, int index);
 int deserializeString(std::optional<std::string>& str, const Protocol::Buffer& buffer, int start, int size);
-
+ 
 // returns -1 on failure and 0 on sucess
 // does not empty buffer on failure
 int serialize(const Protocol::Packet& packet, Protocol::Buffer& buffer)
@@ -65,18 +65,46 @@ int deserialize(const Protocol::Buffer& buffer, Protocol::Packet& packet)
         return -1;
     }
 
-    Protocol::StringSizeT keyStrSize { static_cast<Protocol::StringSizeT>(buffer[1]) };
-    deserializeString(packet.m_key, buffer, 2, keyStrSize);
+    // these shouldnt have arguements
+    if(packet.m_action == Protocol::LOAD || packet.m_action == Protocol::SAVE)
+    {
+        return 0;
+    }
 
-    Protocol::StringSizeT valueStrSize { static_cast<Protocol::StringSizeT>(buffer[2 + keyStrSize]) };
-    deserializeString(packet.m_value, buffer, 3 + keyStrSize, valueStrSize);
+    int deserializeIndex { 1 };
+    Protocol::StringSizeT keyStrSize { static_cast<Protocol::StringSizeT>(buffer[deserializeIndex]) };
+    ++deserializeIndex;
+
+    if(keyStrSize > Protocol::k_maxStringSize) 
+    {
+        return -1;
+    }
+
+    if(deserializeString(packet.m_key, buffer, deserializeIndex, keyStrSize) == -1)
+    {
+        return -1;
+    }
+    deserializeIndex += keyStrSize;
+
+    Protocol::StringSizeT valueStrSize { static_cast<Protocol::StringSizeT>(buffer[deserializeIndex]) };
+    ++deserializeIndex;
+    
+    if(valueStrSize > Protocol::k_maxStringSize)
+    {
+        return -1;
+    }
+
+    if(deserializeString(packet.m_value, buffer, deserializeIndex, valueStrSize) == -1)
+    {
+        return -1;
+    }
 
     return 0;
 }
 
 int serializeString(std::string_view str, Protocol::Buffer& buffer, int index)
 {
-    if(str.size() > Protocol::k_maxStringSize)
+    if(str.size() > Protocol::k_maxStringSize || str.size() == 0)
     {
         return -1;
     }
@@ -93,5 +121,54 @@ int serializeString(std::string_view str, Protocol::Buffer& buffer, int index)
 int deserializeString(std::optional<std::string>& str, const Protocol::Buffer& buffer, int start, int size)
 {
     str = std::string(reinterpret_cast<const char*>(&buffer[start]), size);
+    if(str && (str.value().size() > Protocol::k_maxStringSize || str.value().size() == 0)) 
+    {
+        str = std::nullopt;
+        return -1;
+    }
     return 0;
+}
+
+std::ostream& operator<<(std::ostream& cout, const Protocol::Buffer& buffer)
+{
+    for(const std::byte& byte : buffer)
+    {
+        cout << static_cast<int>(byte) << " ";
+    }
+    return cout;
+}
+
+std::ostream& operator<<(std::ostream& cout, const Protocol::Action& action)
+{
+    std::string_view str {};
+
+    switch (action)
+    {
+    case Protocol::PUT:
+        str = "PUT";
+        break;
+    case Protocol::GET:
+        str = "GET";
+        break;
+    case Protocol::SAVE:
+        str = "SAVE";
+        break;
+    case Protocol::LOAD:
+        str = "LOAD";
+        break;
+    default:
+        str = "NULL";
+        break;
+    }
+
+    cout << str;
+    return cout;
+}
+
+std::ostream& operator<<(std::ostream& cout, const Protocol::Packet& packet)
+{
+    cout << packet.m_action << " ";
+    if(packet.m_key) cout << packet.m_key.value() << " ";
+    if(packet.m_value) cout << packet.m_value.value();
+    return cout;
 }
