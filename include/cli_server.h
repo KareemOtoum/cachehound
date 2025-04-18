@@ -29,4 +29,6 @@ namespace ServerConstants
     constexpr int k_defaultWorkerCount { 4 };
 }
 
-void startServerCLI();
+void startServerCLI(LRUCache& cache);
+
+void printError(std::string_view err);

@@ -9,6 +9,8 @@
 #include <fstream>
 #include <iostream>
 #include <cstring>
+#include <thread>
+#include <mutex>
 
 namespace Persistence
 {
@@ -22,6 +24,8 @@ class LRUCache
 public:
     using ListIt = std::list<std::string>::iterator;
     using HashmapT = std::unordered_map<std::string, std::pair<std::string, ListIt>>;
+    
+    std::mutex m_cacheMutex{};
 
     explicit LRUCache(std::size_t capacity,
         std::string_view cacheFile=Persistence::defaultCacheFile) 

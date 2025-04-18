@@ -1,5 +1,8 @@
 #pragma once
 
+#include "chprotocol.h"
+#include "LRUCache.h"
+
 #include <iostream>
 #include <vector>
 #include <array>
@@ -30,5 +33,5 @@ struct Worker
     std::mutex m_queueMutex{};
     std::queue<int> m_socketQueue{}; // client connections queue
 
-    void run();
+    void run(LRUCache& cache);
 };

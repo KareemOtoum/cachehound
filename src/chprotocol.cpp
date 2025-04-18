@@ -86,6 +86,12 @@ int deserialize(const Protocol::Buffer& buffer, Protocol::Packet& packet)
     }
     deserializeIndex += keyStrSize;
 
+    // get doesnt have value str
+    if(packet.m_action == Protocol::GET)
+    {
+        return 0;
+    }
+
     Protocol::StringSizeT valueStrSize { static_cast<Protocol::StringSizeT>(buffer[deserializeIndex]) };
     ++deserializeIndex;
     
@@ -127,6 +133,16 @@ int deserializeString(std::optional<std::string>& str, const Protocol::Buffer& b
         return -1;
     }
     return 0;
+}
+
+void bufferFactory(Protocol::Buffer& buffer)
+{
+    std::memset(buffer.data(), 0, sizeof(buffer));
+}
+
+void packetFactory(Protocol::Packet& packet)
+{
+    packet = {};
 }
 
 std::ostream& operator<<(std::ostream& cout, const Protocol::Buffer& buffer)

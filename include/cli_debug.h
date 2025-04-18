@@ -9,3 +9,4 @@
 
 void startDebugCLI(LRUCache& cache);
 void testCache();
+void printLogo();

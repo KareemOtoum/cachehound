@@ -6,7 +6,7 @@ int setupServerSocket();
 void makeNonBlocking(int fd);
 void dispatchClient(int clientFD, std::vector<std::unique_ptr<Worker>>& workers);
 
-void startServerCLI() 
+void startServerCLI(LRUCache& cache) 
 {
     // setup worker threads
     // Worker is not copyable or moveable because of std::mutex 
@@ -26,7 +26,7 @@ void startServerCLI()
         // run worker thread on its own run function by passing 
         // its object address to the member func as a this ptr
         Worker& worker { *workers[i] };
-        worker.m_thread = std::thread(&Worker::run, &worker);
+        worker.m_thread = std::thread(&Worker::run, &worker, std::ref(cache));
         worker.m_epollFD = epoll_create1(0);
         worker.m_eventFD = eventfd(0, EFD_NONBLOCK);
     }
@@ -34,8 +34,9 @@ void startServerCLI()
     std::cout << "Setting up server\n";
 
     // setup server socket on main thread
-
+    
     int serverSock { setupServerSocket() };
+
     if(serverSock == -1) 
     {
         printError("Server error: failed to setup server socket");

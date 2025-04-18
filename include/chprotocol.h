@@ -41,6 +41,9 @@ namespace Protocol
 int serialize(const Protocol::Packet& packet, Protocol::Buffer& buffer);
 int deserialize(const Protocol::Buffer& buffer, Protocol::Packet& packet);
 
+void bufferFactory(Protocol::Buffer& buffer);
+void packetFactory(Protocol::Packet& packet);
+
 // for printing packet, buffer and action to cout
 std::ostream& operator<<(std::ostream& cout, const Protocol::Buffer& buffer);
 std::ostream& operator<<(std::ostream& cout, const Protocol::Packet& packet);

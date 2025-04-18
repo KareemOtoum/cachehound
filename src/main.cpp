@@ -1,21 +1,28 @@
 #include "LRUCache.h"
 #include "cli_debug.h"
 #include "cli_server.h"
+#include "cli_client.h"
 #include "chprotocol.h"
 #include <iostream>
+#include <string.h>
 
-int main()
+int main(int argc, char* argv[])
 {
-    Protocol::Packet packet { Protocol::PUT , "hello", "WORLD"};
-    Protocol::Buffer buffer{};
+    if(argc != 2)
+    {
+        std::cout << "cacheound client/server\n";
+        return -1;
+    }
 
-    serialize(packet, buffer);
-    std::cout << buffer << "\n";
-
-    Protocol::Packet p2 {};
-
-    deserialize(buffer, p2);
-
-    std::cout << p2 << "\n";
+    if(std::strncmp(argv[1], "server", 7) == 0)
+    {
+        LRUCache cache(4);
+        startServerCLI(cache);
+    } 
+    else if(std::strncmp(argv[1], "client", 7) == 0)
+    {
+        startClientCLI("127.0.0.1", "8080");
+    }
+    
     return 0;
 }

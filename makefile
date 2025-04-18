@@ -21,8 +21,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Run the program
-run: $(TARGET)
-	./$(TARGET)
+server: $(TARGET)
+	./$(TARGET) server
+
+client: $(TARGET)
+	./$(TARGET) client
 
 # Clean build files
 clean:
