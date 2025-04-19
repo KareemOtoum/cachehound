@@ -23,11 +23,15 @@ It supports fast in-memory access, multithreaded network handling via worker thr
 - g++13
 - make
 
-## 🚀 Running the Server
-The server has an optional `capacity` parameter (default = `10,000`).
+The project uses make to build, to get started clone the repo and cd into the directory:
 ```bash
 git clone https://github.com/KareemOtoum/cachehound.git
 cd cachehound
+```  
+## 🚀 Running the Server
+
+The server has an optional `capacity` parameter for the maximum key-value pair entries (default = `10,000`).
+```bash
 make server capacity=<x>
 ```
 <img width="537" alt="image" src="https://github.com/user-attachments/assets/58bcc592-fae2-42aa-a63f-cf768cfca3e5" />
@@ -35,12 +39,11 @@ make server capacity=<x>
 ## 🧪 Running the Client
 The client accepts optional `ip` and `port` parameters (defaults: `127.0.0.1`, `5050`).
 ```bash
-git clone https://github.com/KareemOtoum/cachehound.git
-cd cachehound
 make client ip=<x> port=<x>
 ```
+<img width="578" alt="image" src="https://github.com/user-attachments/assets/39b4519d-ad5a-4797-a447-06a7530fae0b" />
 
-# Architecture & Design  
+# Architecture  
 (ai generated diagram)
 ```txt
          ┌────────────┐
