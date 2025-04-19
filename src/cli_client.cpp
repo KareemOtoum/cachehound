@@ -199,12 +199,12 @@ void startClientCLI(std::string_view ip, std::string_view port)
 
 void printClientCommands()
 {
-    std::cout << "\t ----------\n"; 
+    std::cout << "\t------------\n"; 
     std::cout << "\t| Commands |\n"; 
-    std::cout << "\t ----------\n\n"; 
-    std::cout << "\t| put <key> <value>\n";
-    std::cout << "\t| get <key>\n";
-    std::cout << "\t| save\n";
-    std::cout << "\t| load\n";
+    std::cout << "\t------------\n"; 
+    std::cout << "\t| put <key> <value>     - puts a key-value pair in the database\n";
+    std::cout << "\t| get <key>             - gets a value from the database\n";
+    std::cout << "\t| save                  - saves database to disk\n";
+    std::cout << "\t| load                  - loads database from disk\n";
     std::cout << "\t| exit\n\n";
 }

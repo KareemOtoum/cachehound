@@ -41,7 +41,7 @@ make client ip=<x> port=<x>
 ```
 
 # Architecture & Design  
-
+(ai generated diagram)
 ```txt
          ┌────────────┐
          │  Client    │
