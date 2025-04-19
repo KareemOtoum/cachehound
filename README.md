@@ -1,7 +1,7 @@
 # Cachehound  
 
 **Cachehound** is a networked, persistent LRU (Least Recently Used) cache database written in C++20.  
-It supports fast in-memory access, multithreaded network handling via worker threads and binary formatted disk persistence.  
+It supports fast in-memory access, multithreaded network handling via worker threads and binary formatted disk persistence and networking protocol.  
 
 <img width="599" alt="image" src="https://github.com/user-attachments/assets/a64b2e10-8a65-45c7-97a2-3005e96cd1d5" />
 
@@ -23,7 +23,7 @@ It supports fast in-memory access, multithreaded network handling via worker thr
 - g++13
 - make
 
-The project uses make to build, to get started clone the repo and cd into the directory:
+The project uses make to build and run, to get started clone the repo and cd into the directory:
 ```bash
 git clone https://github.com/KareemOtoum/cachehound.git
 cd cachehound
