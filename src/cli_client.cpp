@@ -1,37 +1,18 @@
 #include "cli_client.h"
 
 void printClientCommands();
+int setupClientSocket(std::string_view ip, std::string_view port);
 
 static Protocol::Buffer buffer;
 static Protocol::Packet packet;
 
 void startClientCLI(std::string_view ip, std::string_view port)
 {
-    struct addrinfo hints, *serverinfo;
-    int rv;
-    
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC; // dont care about ipv4 or ipv6
-    hints.ai_socktype = SOCK_STREAM; // TCP socket
+    int clientSocket {};
 
-    if((rv = getaddrinfo(ip.data(), port.data(), &hints, &serverinfo) != 0))
+    if((clientSocket = setupClientSocket(ip, port)) == -1)
     {
-        printError("Client error: getaddrinfo");
-        return;
-    }
-
-    int clientSocket { socket(serverinfo->ai_family, serverinfo->ai_socktype,
-       serverinfo->ai_protocol)};
-
-    if(clientSocket == -1)
-    {
-        printError("Client error: client socket");
-        return;    
-    } 
-
-    if(connect(clientSocket, serverinfo->ai_addr, serverinfo->ai_addrlen) == -1)
-    {
-        printError("Client error: failed to connect");
+        printError("Couldn't setup client socket");
         return;
     }
 
@@ -207,4 +188,37 @@ void printClientCommands()
     std::cout << "\t| save                  - saves database to disk\n";
     std::cout << "\t| load                  - loads database from disk\n";
     std::cout << "\t| exit\n\n";
+}
+
+int setupClientSocket(std::string_view ip, std::string_view port)
+{
+    struct addrinfo hints, *serverinfo;
+    int rv;
+    
+    std::memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC; // dont care about ipv4 or ipv6
+    hints.ai_socktype = SOCK_STREAM; // TCP socket
+
+    if((rv = getaddrinfo(ip.data(), port.data(), &hints, &serverinfo) != 0))
+    {
+        printError("Client error: getaddrinfo failed");
+        return -1;
+    }
+
+    int clientSocket { socket(serverinfo->ai_family, serverinfo->ai_socktype,
+       serverinfo->ai_protocol)};
+
+    if(clientSocket == -1)
+    {
+        printError("Client error: client socket invalid");
+        return -1;    
+    } 
+
+    if(connect(clientSocket, serverinfo->ai_addr, serverinfo->ai_addrlen) == -1)
+    {
+        printError("Client error: failed to connect");
+        return -1;
+    }
+
+    return clientSocket;
 }
