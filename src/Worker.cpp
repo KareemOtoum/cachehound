@@ -46,14 +46,14 @@ void Worker::run(std::shared_ptr<LRUCache> cache)
             }
             else // new packet from client
             {
-                // edge triggered client handling means we need to use a while loop
+                // level client handling means we dont need to use a while loop
                 // to receive packets
 
                 Protocol::Buffer buffer{};
 
                 ssize_t bytes { recv(fd, buffer.data(), sizeof(buffer), 0) };
 
-                if (bytes == -1) 
+                if (bytes == -1) // error
                 {
                     m_clientSockets.erase(fd);
                     epoll_ctl(m_epollFD, EPOLL_CTL_DEL, fd, &events[i]);
@@ -73,7 +73,7 @@ void Worker::run(std::shared_ptr<LRUCache> cache)
                 Protocol::Packet packet{};
                 if(deserialize(buffer, packet) == -1)
                 {
-                    std::cerr << "Couldn't deserialize buffer from client\n";
+                    printError("Couldn't deserialize message buffer from client");
                     continue;
                 }
 
@@ -84,8 +84,9 @@ void Worker::run(std::shared_ptr<LRUCache> cache)
                 {
                         
                 case Protocol::PUT:
-                    if (!packet.m_key || !packet.m_value) {
-                        std::cerr << "PUT packet missing key or value. Crashing avoided.\n";
+                    if (!packet.m_key || !packet.m_value) 
+                    {
+                        printError("PUT packet missing key or value");
                         continue;
                     }
                     cache->put(packet.m_key.value(), packet.m_value.value());

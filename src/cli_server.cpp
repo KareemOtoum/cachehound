@@ -1,6 +1,5 @@
 #include "cli_server.h"
 
-void printError(std::string_view err);
 void logNewClient(const sockaddr_storage& clientAddr);
 int setupServerSocket();
 void makeNonBlocking(int fd);
@@ -11,6 +10,7 @@ namespace ServerConstants
 {
     std::atomic<bool> g_running { true };
 }
+
 void startServerCLI(std::shared_ptr<LRUCache> cache) 
 {
     // setup cleanup handler
@@ -34,7 +34,7 @@ void startServerCLI(std::shared_ptr<LRUCache> cache)
         worker->m_epollFD = epoll_create1(0);
         worker->m_eventFD = eventfd(0, EFD_NONBLOCK);
     
-        // Start thread *after* FD init
+        // Start thread after FD init
         worker->m_thread = std::thread(&Worker::run, worker.get(), sharedCache);
     
         workers.push_back(std::move(worker));
@@ -52,6 +52,7 @@ void startServerCLI(std::shared_ptr<LRUCache> cache)
         return;
     }
 
+    // somewhat unnecessary 
     makeNonBlocking(serverSock);
 
     std::cout << "Server listening on port " << ServerConstants::port << "...\n";
@@ -62,7 +63,6 @@ void startServerCLI(std::shared_ptr<LRUCache> cache)
     while(ServerConstants::g_running.load())
     {
         // non blocking returns immediately
-        // change to use epoll to lower cpu usage
         int newClientFD { accept(serverSock, (struct sockaddr *)&client_addr, &sin_size) };
 
         if(newClientFD == -1)
@@ -81,6 +81,7 @@ void startServerCLI(std::shared_ptr<LRUCache> cache)
         dispatchClient(newClientFD, workers);
     }
 
+    // after exit signal is received and main loop stops
     close(serverSock);
     for(auto& worker : workers)
     {
@@ -94,9 +95,15 @@ void startServerCLI(std::shared_ptr<LRUCache> cache)
 void dispatchClient(int clientFD, std::vector<std::unique_ptr<Worker>>& workers)
 {
     // round robin scheduling
-    static int nextWorker { 0 };
+    static size_t nextWorker { 0 };
 
-    int i { nextWorker++ % workers.size() };
+    if(workers.size() == 0) 
+    {
+        printError("Cant dispatch client, worker count is zero");
+        return;
+    }
+
+    size_t i { nextWorker++ % workers.size() };
 
     std::cout << "dispatching client to worker " << i << "\n";
 
@@ -106,19 +113,13 @@ void dispatchClient(int clientFD, std::vector<std::unique_ptr<Worker>>& workers)
         worker.m_socketQueue.push(clientFD);
     }
 
-    // write 1 to workers eventfd to signal an added client to its queue
+    // write 1 to workers m_eventfd to signal an added client to its queue
     ServerConstants::DispatchEventT one { 1 };
-    write(worker.m_eventFD, &one, sizeof(ServerConstants::DispatchEventT));
-}
-
-void printError(std::string_view err)
-{
-    std::cerr << err << "\n";
-}
-
-void printLog(std::string_view msg)
-{
-    std::cout << msg << "\n";
+    ssize_t bytes { write(worker.m_eventFD, &one, sizeof(one)) };
+    if(bytes == -1)
+    {
+        printError("Couldn't notify worker of client dispatch");
+    }
 }
 
 void makeNonBlocking(int fd)
@@ -131,11 +132,13 @@ void logNewClient(const sockaddr_storage& clientAddr)
 {
     std::array<char, INET_ADDRSTRLEN> ip4{};
     
+    // jargon to print the clients ipv4 address
     const sockaddr_in* addr_in = reinterpret_cast<const sockaddr_in*>(&clientAddr);
     if (inet_ntop(AF_INET, &(addr_in->sin_addr), ip4.data(), ip4.size())) {
         std::cout << "Got connection from: " << ip4.data() << "\n";
     } else {
-        std::cerr << "Failed to convert IP address\n";
+        std::cout << "Got connection\n";
+        printError("Failed to convert client address");
     }
 }
 

@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
             }
         } 
 
+        // use a shared ptr to make sure cache is alive as long as worker threads are using it
         std::shared_ptr<LRUCache> cache { std::make_shared<LRUCache>(capacity) };
 
         startServerCLI(cache);

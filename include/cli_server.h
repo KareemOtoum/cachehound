@@ -2,6 +2,8 @@
 
 #include "LRUCache.h"
 #include "Worker.h"
+#include "print_error.h"
+
 #include <thread>
 #include <memory>
 #include <mutex>
@@ -27,7 +29,7 @@ namespace ServerConstants
 {
     constexpr std::string_view port { "5050" };
 
-    inline const int k_workerCount { std::thread::hardware_concurrency() };
+    inline const int k_workerCount { static_cast<int>(std::thread::hardware_concurrency()) };
     constexpr int k_defaultWorkerCount { 4 };
 
     extern std::atomic<bool> g_running;
@@ -35,5 +37,4 @@ namespace ServerConstants
 
 void startServerCLI(std::shared_ptr<LRUCache> cache);
 
-void printError(std::string_view err);
 void handleExit(int signal);
