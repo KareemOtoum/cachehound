@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
         {
             try
             {
-                size_t parsed { std::stoi(argv[2]) };
+                size_t parsed { static_cast<size_t>(std::stoi(argv[2])) };
                 if(parsed < 1 || parsed > CacheConstants::maxCapacity)
                 {
                     std::cerr << "Invalid capacity using default: " << 
