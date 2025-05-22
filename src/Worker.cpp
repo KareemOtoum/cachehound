@@ -1,6 +1,6 @@
 #include "Worker.h"
 
-void Worker::run(std::shared_ptr<LRUCache> cache)
+void Worker::run(LRUCache& cache)
 {
     std::array<epoll_event, ServerConstants::k_maxEvents> events{};
 
@@ -78,8 +78,7 @@ void Worker::run(std::shared_ptr<LRUCache> cache)
                 }
 
                 std::optional<std::string> val {};
-                std::lock_guard<std::mutex> lock(cache->m_cacheMutex);
-
+                
                 switch (packet.m_action)
                 {
                         
@@ -89,12 +88,12 @@ void Worker::run(std::shared_ptr<LRUCache> cache)
                         printError("PUT packet missing key or value");
                         continue;
                     }
-                    cache->put(packet.m_key.value(), packet.m_value.value());
+                    cache.put(packet.m_key.value(), packet.m_value.value());
                     std::cout << "put " << packet.m_key.value() << " into database\n";
                     break;
                     
                 case Protocol::GET:
-                    val = { cache->get(packet.m_key.value()) };
+                    val = { cache.get(packet.m_key.value()) };
                     packet.m_key = val ? val.value() : "NOT FOUND";
                     bufferFactory(buffer);
                     serialize(packet, buffer);
@@ -105,12 +104,12 @@ void Worker::run(std::shared_ptr<LRUCache> cache)
 
                 case Protocol::SAVE:
                     std::cout << "Saving to disk...\n";
-                    cache->saveToDisk();
+                    cache.saveToDisk();
                     break;
 
                 case Protocol::LOAD:
                     std::cout << "Loading from disk...\n";
-                    cache->loadFromDisk();
+                    cache.loadFromDisk();
                     break;
 
                 default:

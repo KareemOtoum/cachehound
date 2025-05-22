@@ -37,6 +37,6 @@ struct Worker
     std::queue<int> m_socketQueue{}; // client connections queue
     std::unordered_set<int> m_clientSockets;
 
-    void run(std::shared_ptr<LRUCache> cache);
+    void run(LRUCache& cache);
     void cleanup();
 };

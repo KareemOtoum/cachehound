@@ -11,14 +11,12 @@ namespace ServerConstants
     std::atomic<bool> g_running { true };
 }
 
-void startServerCLI(std::shared_ptr<LRUCache> cache) 
+void startServerCLI(LRUCache& cache) 
 {
     // setup cleanup handler
     std::signal(SIGINT, handleExit);
     std::signal(SIGTERM, handleExit);
 
-    std::shared_ptr<LRUCache> sharedCache = std::move(cache);
-    
     // setup worker threads
     std::vector<std::unique_ptr<Worker>> workers;
 
@@ -35,7 +33,7 @@ void startServerCLI(std::shared_ptr<LRUCache> cache)
         worker->m_eventFD = eventfd(0, EFD_NONBLOCK);
     
         // Start thread after FD init
-        worker->m_thread = std::thread(&Worker::run, worker.get(), sharedCache);
+        worker->m_thread = std::thread(&Worker::run, worker.get(), std::ref(cache));
     
         workers.push_back(std::move(worker));
     }

@@ -35,6 +35,6 @@ namespace ServerConstants
     extern std::atomic<bool> g_running;
 }
 
-void startServerCLI(std::shared_ptr<LRUCache> cache);
+void startServerCLI(LRUCache& cache);
 
 void handleExit(int signal);

@@ -8,6 +8,8 @@ void LRUCache::use(ListIt iterator)
 
 std::optional<std::string> LRUCache::get(const std::string& key)
 {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
+
     if(!m_map.contains(key))
     {
         return std::nullopt;
@@ -35,6 +37,8 @@ void LRUCache::evictLRU()
 
 void LRUCache::put(const std::string& key, const std::string& value)
 {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
+
     if(m_map.contains(key)) 
     {
         use(m_map[key].second);
@@ -48,7 +52,7 @@ void LRUCache::put(const std::string& key, const std::string& value)
     }
 
     // add new entry
-    m_usage.emplace_back(std::string{key});
+    m_usage.push_back(std::string{key});
 
     m_map[key] = std::pair{value, --m_usage.end()};
 }
@@ -73,6 +77,8 @@ void writeString(std::ofstream& file, const std::string_view str)
 
 void LRUCache::saveToDisk()
 {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
+
     std::ofstream file(m_cacheFile, std::ios::binary);
 
     writeString(file, Persistence::cacheFileHeader);    // "LRU-DB"
@@ -115,6 +121,8 @@ std::string readString(std::ifstream& file)
 
 void LRUCache::loadFromDisk()
 {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
+
     std::ifstream file(m_cacheFile, std::ios::binary);
 
     if(!file)

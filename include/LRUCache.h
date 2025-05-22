@@ -38,7 +38,7 @@ public:
         : m_capacity { capacity }
         , m_cacheFile { cacheFile }
     {
-        if(capacity < 1) m_capacity = 1; // cache cant have 0 capacity
+        if(capacity < 1) m_capacity = 1; 
 
         m_map.reserve(capacity);
     }
