@@ -43,28 +43,3 @@ make client ip=<x> port=<x>
 ```
 <img width="578" alt="image" src="https://github.com/user-attachments/assets/39b4519d-ad5a-4797-a447-06a7530fae0b" />
 
-# Architecture  
-(ai generated diagram)
-```txt
-         ┌────────────┐
-         │  Client    │
-         └────┬───────┘
-              │
-              ▼
-       ┌────────────┐
-       │Main thread │ Accepts new connections
-       └────┬───────┘
-            ▼
-     ┌──────────────┐
-     │ Dispatcher   │ Round-robin to workers
-     └────┬─────────┘
-          ▼
-    ┌────────────┐
-    │ Worker[N]  │ Each with its own epoll loop
-    └────┬───────┘
-         ▼
-  ┌──────────────┐
-  │ LRU Cache    │ Shared across all workers
-  └──────────────┘
-
-```
