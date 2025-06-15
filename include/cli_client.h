@@ -7,3 +7,4 @@
 #include <netdb.h>
 
 void startClientCLI(std::string_view ip, std::string_view port);
+int setupClientSocket(std::string_view ip, std::string_view port);

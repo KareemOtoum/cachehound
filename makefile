@@ -1,12 +1,13 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -O2 -Iinclude
+CXXFLAGS = -std=c++20 -Wall -Wextra -O3 -march=native -Iinclude
 
 SRC_DIR = src
 OBJ_DIR = build
 TARGET = $(OBJ_DIR)/main
 
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
-OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
+OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, \
+        $(filter-out $(SRC_DIR)/throughput_test.cpp, $(SRCS)))
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
