@@ -25,7 +25,7 @@ void startServerCLI(LRUCache& cache)
          : ServerConstants::k_defaultWorkerCount };
     workers.reserve(workerCount);
     
-    std::cout << "Setting up workers\n";
+    std::cout << "Setting up " << workerCount << " workers\n";
     for(int i{}; i < workerCount; ++i)
     {
         auto worker = std::make_unique<Worker>();
