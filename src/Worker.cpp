@@ -41,7 +41,7 @@ void Worker::run(LRUCache& cache)
                     clientEvent.events = EPOLLIN;
                     clientEvent.data.fd = clientFD;
                     epoll_ctl(m_epollFD, EPOLL_CTL_ADD, clientFD, &clientEvent);
-                    std::cout << "Worker: added clientfd " << clientFD << " to epoll instance\n";
+                    LOG("Worker: added clientfd " << clientFD << " to epoll instance");
                 }
             }
             else // new packet from client
@@ -89,7 +89,7 @@ void Worker::run(LRUCache& cache)
                         continue;
                     }
                     cache.put(packet.m_key.value(), packet.m_value.value());
-                    std::cout << "put " << packet.m_key.value() << " into database\n";
+                    LOG("put " << packet.m_key.value() << " into database");
                     break;
                     
                 case Protocol::GET:
@@ -99,16 +99,16 @@ void Worker::run(LRUCache& cache)
                     serialize(packet, buffer);
                     send(fd, buffer.data(), sizeof(buffer), 0);
                         
-                    std::cout << "sent value " << packet.m_key.value() << "\n";
+                    LOG("sent value " << packet.m_key.value());
                     break;
 
                 case Protocol::SAVE:
-                    std::cout << "Saving to disk...\n";
+                    LOG("Saving to disk...");
                     cache.saveToDisk();
                     break;
 
                 case Protocol::LOAD:
-                    std::cout << "Loading from disk...\n";
+                    LOG("Loading from disk...");
                     cache.loadFromDisk();
                     break;
 

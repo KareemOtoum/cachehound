@@ -21,6 +21,15 @@
 #include <netinet/in.h>
 #include <cstring>
 
+// macro to enable logging 
+//#define ENABLE_WORKER_LOGGING
+
+#ifdef ENABLE_WORKER_LOGGING
+    #define LOG(msg) do { std::cout << "[Worker]: " << msg << "\n"; } while(0)
+#else 
+    #define LOG(msg) do {} while(0)
+#endif
+
 namespace ServerConstants
 {
     constexpr int k_maxEvents { 64 };
