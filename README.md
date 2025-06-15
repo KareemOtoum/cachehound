@@ -50,6 +50,6 @@ make client ip=<x> port=<x>
 | 1000              | 16                | 50,000                       |
 | 10,000            | 16                | 400,000                      |
 
-Redis achieves roughly 100k - 200k requests per second single-threaded, with no pipelining  
+
 <img width="578" alt="image" src="https://github.com/user-attachments/assets/39b4519d-ad5a-4797-a447-06a7530fae0b" />
 
