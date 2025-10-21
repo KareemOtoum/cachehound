@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <unordered_map>
@@ -15,7 +14,7 @@
 namespace Persistence
 {
     constexpr std::string_view cacheFileHeader { "CACHEHOUND" };
-    constexpr std::string defaultCacheFile { "cache.db" };
+    constexpr std::string_view defaultCacheFile { "cache.db" };
     constexpr size_t formatVersion { 1 };
 }
 
